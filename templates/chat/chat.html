@@ -1,0 +1,20 @@
+<!-- chat/templates/chat/chat.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot</title>
+</head>
+<body>
+    <h1>Добро пожаловать в чатбот</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Отправить</button>
+    </form>
+    {% if response %}
+        <h2>Ответ:</h2>
+        <p>{{ response }}</p>
+    {% endif %}
+</body>
+</html>
