@@ -1,17 +1,42 @@
-from django.shortcuts import render
+from django.conf import settings
+from django.shortcuts import render, redirect
+from langchain_community.chat_message_histories import ChatMessageHistory
 
-from .forms import QuestionForm
-from .langchain_utils import conversation
+from .forms import ChatForm
+from .langchain_utils import get_chat_chain, build_messages_from_chat_history
 
 
 def chat_view(request):
-    response = None
+    chat_history = request.session.get("chat_history", [])
+
     if request.method == "POST":
-        form = QuestionForm(request.POST)
+        form = ChatForm(request.POST)
         if form.is_valid():
-            question = form.cleaned_data["question"]
-            # Получаем ответ от цепочки
-            response = conversation.run(input=question)
+            user_input = form.cleaned_data["message"]
+
+            chat_history.append({"role": "user", "content": user_input})
+
+            messages = build_messages_from_chat_history(chat_history)
+            history = ChatMessageHistory(messages=messages)
+
+            chain = get_chat_chain(settings.OPENAI_API_KEY, history)
+
+            response = chain.invoke({"input": user_input})
+
+            chat_history.append({"role": "assistant", "content": response})
+
+            request.session["chat_history"] = chat_history
+
+            return redirect("chat")
     else:
-        form = QuestionForm()
-    return render(request, "chat/chat.html", {"form": form, "response": response})
+        form = ChatForm()
+
+    return render(
+        request, "chat/chat.html", {"form": form, "chat_history": chat_history}
+    )
+
+
+def reset_chat(request):
+    if "chat_history" in request.session:
+        del request.session["chat_history"]
+    return redirect("chat")
