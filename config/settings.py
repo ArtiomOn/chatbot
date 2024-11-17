@@ -7,7 +7,9 @@ env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = env.str("SECRET_KEY")
+SECRET_KEY = env.str(
+    "SECRET_KEY", default="f@vk3hklpc$3u5cij41vd%k0kj^pl@sc-*4ykyh!1x6cxs$!l+"
+)
 
 DEBUG = env.bool("DEBUG", default=False)
 
@@ -93,5 +95,10 @@ STATIC_URL = "/static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 OPENAI_API_KEY = env.str("OPENAI_API_KEY")
+OPENAI_MODEL_NAME = env.str("OPENAI_MODEL_NAME", default="gpt-3.5-turbo")
+OPENAI_TEMPERATURE = env.float("OPENAI_TEMPERATURE", default=0.7)
+
+GOOGLE_API_KEY = env.str("GOOGLE_API_KEY", default=None)
+GOOGLE_CSE_ID = env.str("GOOGLE_CSE_ID", default=None)
 
 env.seal()
