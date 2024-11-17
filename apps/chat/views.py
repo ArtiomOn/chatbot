@@ -4,7 +4,10 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from langchain_community.chat_message_histories import ChatMessageHistory
-from apps.chat.langchain_utils import get_streaming_chat_chain, build_messages_from_chat_history
+from apps.chat.langchain_utils import (
+    get_streaming_chat_chain,
+    build_messages_from_chat_history,
+)
 import json
 
 
