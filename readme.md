@@ -13,6 +13,8 @@ A **Django-based server** that powers a chatbot using OpenAI and Google APIs. Th
 - [Installation](#installation)
   - [Clone the Repository](#clone-the-repository)
   - [Environment Variables](#environment-variables)
+    - [Required Environment Variables](#required-environment-variables)
+    - [Optional Environment Variables](#optional-environment-variables)
   - [Docker Setup](#docker-setup)
     - [Build Docker](#build-docker)
     - [Run the Docker container](#run-the-docker-container)
@@ -44,20 +46,23 @@ git clone https://github.com/ArtiomOn/chatbot.git
 cd chatbot
 ```
 
-### Environment Variables
+## Environment Variables
 
 Create a `.env` file in the project root directory and add the following environment variables:
 
+### Required Environment Variables
 ```bash
-## Required Environment Variables
 # OpenAI API Key
 OPENAI_API_KEY=your_openai_api_key
 
 # Google API Key
 GOOGLE_API_KEY=your_google_api_key
 GOOGLE_CSE_ID=your_google_cse_id
+```
 
-## Optional Environment Variables, defaults are provided in settings.py
+### Optional Environment Variables
+The following environment variables are optional and have default values set in the `settings.py` file:
+```bash
 # Django credentials
 SECRET_KEY=yoursecretkey
 DEBUG=True
