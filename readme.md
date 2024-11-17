@@ -42,8 +42,8 @@ A **Django-based server** that powers a chatbot using OpenAI and Google APIs. Th
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/django-chatbot-server.git
-cd django-chatbot-server
+git clone https://github.com/ArtiomOn/chatbot.git
+cd chatbot
 ```
 
 ### Environment Variables
