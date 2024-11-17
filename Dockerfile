@@ -2,7 +2,7 @@
 FROM python:3.12
 
 # Set environment variables
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -13,6 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the entire Django project into the container
 COPY . /app/
+COPY .env /app/
 
 # Run collectstatic to gather static files
 RUN python manage.py collectstatic --noinput

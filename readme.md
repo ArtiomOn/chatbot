@@ -14,11 +14,9 @@ A **Django-based server** that powers a chatbot using OpenAI and Google APIs. Th
   - [Clone the Repository](#clone-the-repository)
   - [Environment Variables](#environment-variables)
   - [Docker Setup](#docker-setup)
-- [Usage](#usage)
-  - [Running with Docker](#running-with-docker)
-  - [Docker Commands](#docker-commands)
-- [Project Structure](#project-structure)
-- [Contact](#contact)
+    - [Build Docker](#build-docker)
+    - [Run the Docker container](#run-the-docker-container)
+- [Contacts](#contacts)
 
 ## Features
 
@@ -59,5 +57,21 @@ GOOGLE_API_KEY=your_google_api_key
 GOOGLE_CSE_ID=your_google_cse_id
 ```
 
-### Docker Setup
+# Docker Setup
 
+### Build Docker
+
+```bash
+docker build -t chatbot .
+```
+
+### Run the Docker container
+
+```bash
+docker run -d -p 8000:8000 chatbot
+```
+
+### Contacts
+
+- LinkedIn: [Artiom Oncea](www.linkedin.com/in/artiom-oncea-8b2174216)
+- Telegram: [Artiom](https://t.me/art1292)
