@@ -1,4 +1,4 @@
-# Django Chatbot Server
+# Chatbot
 
 ![Docker](https://img.shields.io/badge/docker-yes-brightgreen.svg)
 ![Django](https://img.shields.io/badge/django-4.2%2B-green.svg)
