@@ -48,7 +48,7 @@ cd chatbot
 
 ## Environment Variables
 
-Create a `.env` file in the project root directory and add the following environment variables:
+Create or update a `.env` file in the project root directory and add the following environment variables:
 
 ### Required Environment Variables
 ```bash
