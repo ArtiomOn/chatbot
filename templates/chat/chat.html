@@ -114,6 +114,11 @@
             border-bottom-left-radius: 0.25rem;
         }
 
+        .error-message {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
         .message p {
             margin: 0;
             white-space: pre-wrap;
@@ -212,81 +217,165 @@
     </style>
 </head>
 <body>
-<header class="header">
-    <h1>Chat Assistant</h1>
-    <form method="post" action="{% url 'reset_chat' %}" style="margin: 0;">
-        {% csrf_token %}
-        <button type="submit" class="reset-button">Reset Chat</button>
-    </form>
-</header>
-
-<div class="chat-container" id="chatContainer">
-    {% for msg in chat_history %}
-        <div class="message {% if msg.role == 'user' %}user-message{% else %}assistant-message{% endif %}">
-            <p>{{ msg.content }}</p>
-        </div>
-    {% endfor %}
-</div>
-
-<form method="post" id="chatForm" action="{% url 'chat' %}">
     {% csrf_token %}
+    <header class="header">
+        <h1>Chat Assistant</h1>
+        <button id="resetButton" class="reset-button">Reset Chat</button>
+    </header>
+
+    <div class="chat-container" id="chatContainer">
+        {% for msg in chat_history %}
+            <div class="message {% if msg.role == 'user' %}user-message{% else %}assistant-message{% endif %}">
+                <p>{{ msg.content }}</p>
+            </div>
+        {% endfor %}
+    </div>
+
     <div class="input-area">
         <div class="input-container">
-                <textarea
-                        class="message-input"
-                        name="message"
-                        placeholder="Type your message..."
-                        required
-                        id="messageInput"
-                        rows="1"
-                ></textarea>
-            <button type="submit" name="action" value="send" class="send-button">
+            <textarea
+                class="message-input"
+                placeholder="Type your message..."
+                required
+                id="messageInput"
+                rows="1"
+            ></textarea>
+            <button type="button" id="sendButton" class="send-button">
                 Send
             </button>
         </div>
     </div>
-</form>
 
-<script>
-    // Auto-scroll to bottom
-    function scrollToBottom() {
+    <script>
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
         const chatContainer = document.getElementById('chatContainer');
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
+        const resetButton = document.getElementById('resetButton');
 
-    // Auto-resize textarea
-    const messageInput = document.getElementById('messageInput');
-    messageInput.addEventListener('input', function () {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-    });
-
-    // Handle form submission
-    document.getElementById('chatForm').addEventListener('submit', function () {
-        const button = this.querySelector('button[type="submit"]');
-        button.disabled = true;
-        setTimeout(() => {
-            button.disabled = false;
-        }, 1000);
-    });
-
-    // Confirm reset
-    document.querySelector('.reset-button').addEventListener('click', function (e) {
-        if (!confirm('Are you sure you want to reset the chat? This will delete all messages.')) {
-            e.preventDefault();
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-    });
 
-    // Initial scroll to bottom
-    window.onload = scrollToBottom;
-
-    // Enter to send (Shift + Enter for new line)
-    messageInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            this.form.submit();
+        function appendMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
+            messageDiv.innerHTML = `<p>${content}</p>`;
+            chatContainer.appendChild(messageDiv);
+            scrollToBottom();
+            return messageDiv;
         }
-    });
-</script>
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            
+            appendMessage(message, true);
+            messageInput.value = '';
+            
+            const responseDiv = appendMessage('');
+            let fullResponse = '';
+            
+            try {
+                const response = await fetch('/stream-response/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(5);
+                            if (data === '[DONE]') continue;
+
+                            try {
+                                const parsed = JSON.parse(data);
+                                if (parsed.chunk) {
+                                    fullResponse += parsed.chunk;
+                                    responseDiv.querySelector('p').textContent = fullResponse;
+                                    scrollToBottom();
+                                } else if (parsed.error) {
+                                    responseDiv.querySelector('p').textContent = parsed.error;
+                                    responseDiv.classList.add('error-message');
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE data:', e);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                responseDiv.querySelector('p').textContent = 'Error: Failed to get response';
+                responseDiv.classList.add('error-message');
+            } finally {
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+        
+        sendButton.addEventListener('click', sendMessage);
+
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        resetButton.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to reset the chat? This will delete all messages.')) {
+                try {
+                    await fetch('/reset-chat/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken')
+                        }
+                    });
+                    chatContainer.innerHTML = '';
+                } catch (error) {
+                    console.error('Error resetting chat:', error);
+                }
+            }
+        });
+        
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        window.onload = scrollToBottom;
+    </script>
 </body>
 </html>

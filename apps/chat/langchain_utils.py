@@ -1,7 +1,6 @@
 from typing import Dict, Any
 
 from langchain_core.messages import HumanMessage, AIMessage
-from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import (
     ChatPromptTemplate,
     MessagesPlaceholder,
@@ -25,14 +24,15 @@ def build_messages_from_chat_history(chat_history):
     return messages
 
 
-def get_chat_chain(openai_api_key, history):
+def get_streaming_chat_chain(openai_api_key, history):
     """
-    Build and return the LangChain chat chain.
+    Build and return a streaming-enabled LangChain chat chain.
     """
     llm = ChatOpenAI(
         model_name="gpt-3.5-turbo",
         openai_api_key=openai_api_key,
         temperature=0.7,
+        streaming=True,
     )
 
     prompt = ChatPromptTemplate.from_messages(
@@ -48,11 +48,6 @@ def get_chat_chain(openai_api_key, history):
     def get_chat_history(_: Dict[str, Any]) -> list:
         return history.messages
 
-    chain = (
-        RunnablePassthrough.assign(chat_history=get_chat_history)
-        | prompt
-        | llm
-        | StrOutputParser()
-    )
+    chain = RunnablePassthrough.assign(chat_history=get_chat_history) | prompt | llm
 
     return chain

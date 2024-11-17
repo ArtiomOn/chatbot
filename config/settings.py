@@ -54,6 +54,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
