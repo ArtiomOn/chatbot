@@ -49,12 +49,22 @@ cd chatbot
 Create a `.env` file in the project root directory and add the following environment variables:
 
 ```bash
+## Required Environment Variables
 # OpenAI API Key
 OPENAI_API_KEY=your_openai_api_key
 
 # Google API Key
 GOOGLE_API_KEY=your_google_api_key
 GOOGLE_CSE_ID=your_google_cse_id
+
+## Optional Environment Variables, defaults are provided in settings.py
+# Django credentials
+SECRET_KEY=yoursecretkey
+DEBUG=True
+
+# OpenAI Model Name and Temperature
+OPENAI_MODEL_NAME="gpt-3.5-turbo"
+OPENAI_TEMPERATURE=0.7
 ```
 
 # Docker Setup
@@ -70,6 +80,13 @@ docker build -t chatbot .
 ```bash
 docker run -d -p 8000:8000 chatbot
 ```
+
+## Access the Chatbot
+
+Open your browser and navigate to `http://localhost:8000/` to access the chatbot.
+
+There is also an option to search in Google via a checkbox in the top right corner, which you can enable or disable as needed.
+
 
 ### Contacts
 
